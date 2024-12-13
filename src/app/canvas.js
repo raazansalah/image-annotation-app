@@ -8,8 +8,11 @@ const Canvas = ({ imageSrc }) => {
 
   const [rectangles, setRectangles] = useState([]);
   const [drawingParams, setDrawingParams] = useState({
-    x: 0,
-    y: 0,
+    startX: 0,
+    startY: 0,
+    endX: 0,
+    endY: 0,
+    isDrawing: false,
   });
 
   // Load the image and set up canvas context
@@ -22,10 +25,6 @@ const Canvas = ({ imageSrc }) => {
       const img = new Image();
       img.src = imageSrc;
       img.onload = () => {
-        // Set canvas size to match image size
-        canvas.width = img.width;
-        canvas.height = img.height;
-
         // Clear and Draw the image onto the canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -50,19 +49,21 @@ const Canvas = ({ imageSrc }) => {
   const handleMouseDown = ({ clientX, clientY }) => {
     const canvas = canvasRef.current;
     const { top, left } = canvas.getBoundingClientRect();
+    console.log({ startX: clientX - top, startY: clientY - left });
     setDrawingParams({
-      x: clientX - top,
-      y: clientY - left,
+      isDrawing: true,
+      startX: clientX - left,
+      startY: clientY - top,
     });
   };
 
   const handleMouseUp = ({ clientX, clientY }) => {
     const canvas = canvasRef.current;
     const { top, left } = canvas.getBoundingClientRect();
-    const { x: startX, y: startY } = drawingParams;
+    const { startX, startY, endX, endY } = drawingParams;
     //specify width and height of rectangle when mouse is up
-    const width = clientX - left - startX;
-    const height = clientY - top - startY;
+    const width = endX - startX;
+    const height = endY - startY;
 
     setRectangles((prev) => [
       ...prev,
@@ -75,7 +76,22 @@ const Canvas = ({ imageSrc }) => {
     ]);
   };
 
-  console.log(rectangles);
+  //updating drawing parameters while dragging
+  const handleMouseMove = ({ clientX, clientY }) => {
+    if (drawingParams.isDrawing) {
+      const canvas = canvasRef.current;
+      const { top, left } = canvas.getBoundingClientRect();
+
+      setDrawingParams((prev) => {
+        return {
+          ...prev,
+          endX: clientX - left,
+          endY: clientY - top,
+        };
+      });
+    }
+  };
+
   return (
     <div className="relative">
       <canvas
@@ -85,6 +101,7 @@ const Canvas = ({ imageSrc }) => {
         className="border"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
       />
     </div>
   );
