@@ -7,6 +7,7 @@ const Canvas = ({ imageSrc }) => {
   const canvasContext = useRef(null);
 
   const [rectangles, setRectangles] = useState([]);
+  const [textValue, setTextValue] = useState("");
   const [drawingParams, setDrawingParams] = useState({
     startX: 0,
     startY: 0,
@@ -31,7 +32,7 @@ const Canvas = ({ imageSrc }) => {
 
         // Draw existing rectangles with annotations
         if (rectangles.length) {
-          rectangles.forEach(({ x, y, width, height, text }) => {
+          rectangles.forEach(({ x, y, width, height, text = "" }) => {
             ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.lineWidth = 2;
@@ -70,8 +71,10 @@ const Canvas = ({ imageSrc }) => {
         y: startY,
         width,
         height,
+        text: textValue,
       },
     ]);
+    setTextValue("");
   };
 
   //updating drawing parameters while dragging
@@ -91,7 +94,7 @@ const Canvas = ({ imageSrc }) => {
   };
 
   return (
-    <div className="relative">
+    <div>
       <canvas
         ref={canvasRef}
         width={800}
@@ -100,6 +103,14 @@ const Canvas = ({ imageSrc }) => {
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+      />
+
+      <input
+        type="text"
+        value={textValue}
+        onChange={(e) => setTextValue(e.target.value)}
+        placeholder="Enter annotation text"
+        className="mt-6 left-5 p-2 border rounded text-black"
       />
     </div>
   );
