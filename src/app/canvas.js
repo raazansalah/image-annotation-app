@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 
-const Canvas = ({ imageSrc }) => {
+const Canvas = ({ imageSrc, onFinish }) => {
   const canvasRef = useRef(null);
   const canvasContext = useRef(null);
 
@@ -75,6 +75,7 @@ const Canvas = ({ imageSrc }) => {
       },
     ]);
     setTextValue("");
+    onFinish(imageSrc, rectangles);
   };
 
   //updating drawing parameters while dragging
