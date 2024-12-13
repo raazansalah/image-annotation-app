@@ -21,6 +21,8 @@ const Home = () => {
 
       {/* Image Upload Section */}
       <input type="file" onChange={handleImageUpload} className="mt-4" />
+
+      <Canvas imageSrc={imageSrc} />
     </div>
   );
 };
