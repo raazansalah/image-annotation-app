@@ -49,7 +49,7 @@ const Canvas = ({ imageSrc }) => {
   const handleMouseDown = ({ clientX, clientY }) => {
     const canvas = canvasRef.current;
     const { top, left } = canvas.getBoundingClientRect();
-    console.log({ startX: clientX - top, startY: clientY - left });
+
     setDrawingParams({
       isDrawing: true,
       startX: clientX - left,
@@ -57,9 +57,7 @@ const Canvas = ({ imageSrc }) => {
     });
   };
 
-  const handleMouseUp = ({ clientX, clientY }) => {
-    const canvas = canvasRef.current;
-    const { top, left } = canvas.getBoundingClientRect();
+  const handleMouseUp = () => {
     const { startX, startY, endX, endY } = drawingParams;
     //specify width and height of rectangle when mouse is up
     const width = endX - startX;
