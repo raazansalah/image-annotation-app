@@ -1,21 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
+
+import { addNewTask, getTasks, updateTask } from "@/api/tasks";
 
 import Canvas from "@/components/canvas";
-import { db } from "../../firebase";
-import {
-  getDocs,
-  addDoc,
-  collection,
-  doc,
-  updateDoc,
-  query,
-  where,
-} from "firebase/firestore";
 
 const Home = () => {
-  const [annotations, setAnnotations] = useState();
+  const [annotations, setAnnotations] = useState([]);
   const [currentAnnotation, setCurrentAnnotation] = useState(null);
 
   const router = useRouter();
@@ -59,58 +52,28 @@ const Home = () => {
   const handleAnnotationFinish = async (newAnnotation) => {
     if (newAnnotation.id) {
       await updateTask(newAnnotation?.id, newAnnotation);
+      handleGetTasksList();
     } else {
       await addNewTask({
         ...newAnnotation,
         assignedTo: userId,
-        status: "Pending",
+        status: "Completed",
       });
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const tasksQuery = query(
-        collection(db, "tasks"),
-        where("assignedTo", "==", userId)
-      );
-      const querySnapshot = await getDocs(tasksQuery);
-
-      const items = querySnapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setAnnotations(items);
-    } catch (error) {
-      console.error("Error fetching tasks: ", error);
-    }
+  const handleGetTasksList = async () => {
+    const items = await getTasks(userId);
+    setAnnotations(items);
+    // setCurrentAnnotation({ ...items[0], index: 0 });
   };
 
-  const updateTask = async (firestoreId, updatedData) => {
-    try {
-      const taskDocRef = doc(db, "tasks", firestoreId);
-      await updateDoc(taskDocRef, updatedData);
-      fetchData();
-    } catch (error) {
-      console.error("Error updating task:", error);
-    }
-  };
-
-  const addNewTask = async (newTaskData) => {
-    try {
-      const tasksCollectionRef = collection(db, "tasks");
-      const docRef = await addDoc(tasksCollectionRef, newTaskData);
-      console.log("New task added with ID:", docRef.id);
-
-      // Optionally fetch tasks after adding
-      fetchData();
-    } catch (error) {
-      console.error("Error adding new task:", error);
-    }
+  const handleTasksNavigation = (index) => {
+    setCurrentAnnotation({ ...annotations[index], index });
   };
 
   useEffect(() => {
-    if (userId) fetchData();
+    if (userId) handleGetTasksList();
   }, [userId]);
 
   return (
@@ -121,18 +84,21 @@ const Home = () => {
 
       {/* Image Upload and Selection Section */}
       <div className="flex flex-wrap gap-4 justify-center mb-6">
-        {annotations?.map((annotation) => (
+        {annotations?.map((annotation, index) => (
           <div
             key={annotation.id}
             onClick={() => {
-              setCurrentAnnotation(annotation);
+              setCurrentAnnotation({ ...annotation, index });
             }}
             className="cursor-pointer transform transition-all hover:scale-105"
           >
-            <img
-              src={annotation.imageURL}
+            <Image
+              src={annotation?.imageURL}
               alt="image"
-              className="w-24 h-12 object-cover rounded-md shadow-md"
+              width={96}
+              height={48}
+              className="object-cover rounded-md shadow-md"
+              quality={75}
             />
           </div>
         ))}
@@ -149,8 +115,10 @@ const Home = () => {
 
       {/* Canvas Section */}
       <Canvas
+        tasksLength={annotations.length}
         onFinish={handleAnnotationFinish}
         currentAnnotation={currentAnnotation}
+        onNavigation={handleTasksNavigation}
       />
     </div>
   );

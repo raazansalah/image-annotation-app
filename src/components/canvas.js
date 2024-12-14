@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 
-const Canvas = ({ imageSrc, onFinish, currentAnnotation }) => {
+const Canvas = ({ tasksLength, onFinish, currentAnnotation, onNavigation }) => {
   const canvasRef = useRef(null);
   const canvasContext = useRef(null);
 
@@ -65,6 +65,7 @@ const Canvas = ({ imageSrc, onFinish, currentAnnotation }) => {
   };
 
   const handleMouseUp = () => {
+    if (!currentAnnotation) return;
     const { startX, startY, endX, endY } = drawingParams;
     //specify width and height of rectangle when mouse is up
     const width = endX - startX;
@@ -103,6 +104,16 @@ const Canvas = ({ imageSrc, onFinish, currentAnnotation }) => {
     onFinish({ ...currentAnnotation, annotations: rectangles });
   };
 
+  const handleNextClick = () => {
+    if (drawingParams.isDrawing) handleFinishAnnotation();
+    onNavigation(currentAnnotation.index + 1);
+  };
+
+  const handlePrevClick = () => {
+    if (drawingParams.isDrawing) handleFinishAnnotation();
+    onNavigation(currentAnnotation.index - 1);
+  };
+
   return (
     <div className="flex flex-col items-center space-y-6 p-4">
       <div className="border-2 border-gray-300 rounded-lg shadow-md w-1/2 flex items-center flex-col">
@@ -123,15 +134,32 @@ const Canvas = ({ imageSrc, onFinish, currentAnnotation }) => {
         className="mt-6 left-5 p-6 border rounded text-black"
       />
 
-      <button
-        className={`py-4 px-8 mt-4 bg-blue-500 text-white rounded-lg transition-all hover:bg-blue-600 ${
-          !currentAnnotation ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={!currentAnnotation}
-        onClick={handleFinishAnnotation}
-      >
-        Next
-      </button>
+      <div className="flex gap-4">
+        <button
+          className={`py-4 px-8 mt-4 bg-blue-500 text-white rounded-lg transition-all hover:bg-blue-600 ${
+            !currentAnnotation || currentAnnotation.index === 0
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
+          disabled={!currentAnnotation || currentAnnotation.index === 0}
+          onClick={handlePrevClick}
+        >
+          prev
+        </button>
+        <button
+          className={`py-4 px-8 mt-4 bg-blue-500 text-white rounded-lg transition-all hover:bg-blue-600 ${
+            !currentAnnotation || currentAnnotation.index + 1 === tasksLength
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }`}
+          disabled={
+            !currentAnnotation || currentAnnotation.index + 1 === tasksLength
+          }
+          onClick={handleNextClick}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };
