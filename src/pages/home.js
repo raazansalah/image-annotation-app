@@ -6,6 +6,7 @@ import Canvas from "@/components/canvas";
 import { db } from "../../firebase";
 import {
   getDocs,
+  addDoc,
   collection,
   doc,
   updateDoc,
@@ -56,11 +57,14 @@ const Home = () => {
   };
 
   const handleAnnotationFinish = async (newAnnotation) => {
-    try {
+    if (newAnnotation.id) {
       await updateTask(newAnnotation?.id, newAnnotation);
-      console.log("Annotations updated successfully!");
-    } catch (error) {
-      console.error("Error updating annotations:", error);
+    } else {
+      await addNewTask({
+        ...newAnnotation,
+        assignedTo: userId,
+        status: "Pending",
+      });
     }
   };
 
@@ -92,6 +96,19 @@ const Home = () => {
     }
   };
 
+  const addNewTask = async (newTaskData) => {
+    try {
+      const tasksCollectionRef = collection(db, "tasks");
+      const docRef = await addDoc(tasksCollectionRef, newTaskData);
+      console.log("New task added with ID:", docRef.id);
+
+      // Optionally fetch tasks after adding
+      fetchData();
+    } catch (error) {
+      console.error("Error adding new task:", error);
+    }
+  };
+
   useEffect(() => {
     if (userId) fetchData();
   }, [userId]);
@@ -106,7 +123,7 @@ const Home = () => {
       <div className="flex flex-wrap gap-4 justify-center mb-6">
         {annotations?.map((annotation) => (
           <div
-            key={annotation.taskId}
+            key={annotation.id}
             onClick={() => {
               setCurrentAnnotation(annotation);
             }}
