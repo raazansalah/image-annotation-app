@@ -1,12 +1,8 @@
-import React from "react";
-
-import { useState } from "react";
-
 const Filters = ({ onSelect, selectedFilter }) => {
   const filters = ["Pending", "In Progress", "Completed"];
 
   return (
-    <div className="flex space-x-4 py-2 justify-center gap-8 mb-6">
+    <div className="flex flex-col sm:flex-row py-2 justify-center gap-8 mb-6">
       {filters.map((item, index) => (
         <div
           key={index}

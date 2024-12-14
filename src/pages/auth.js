@@ -1,18 +1,20 @@
 // pages/index.js
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { login, handleSignup } from "../../auth";
 
+import useAuth from "@/hooks/auth";
 import Input from "@/components/Input";
 
 export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLogin, setIsLogin] = useState(true); // State to toggle between Login and Signup
+  const [isLogin, setIsLogin] = useState(true);
 
   const router = useRouter();
+  const user = useAuth();
 
   const handleAuthAction = async (e) => {
     e.preventDefault();
@@ -36,6 +38,13 @@ export default function AuthPage() {
       setError(err.message);
     }
   };
+
+  useEffect(() => {
+    if (!user)
+      router.push({
+        pathname: "/auth",
+      });
+  }, [user]);
 
   return (
     <div className="container mx-auto p-6 max-w-md">

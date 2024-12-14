@@ -8,7 +8,6 @@ import { addNewTask, getTasks, updateTask } from "@/api/tasks";
 
 import Canvas from "@/components/canvas";
 import Filters from "@/components/Filters";
-import { auth } from "../../firebase";
 
 const Home = () => {
   const [annotations, setAnnotations] = useState([]);
@@ -16,7 +15,6 @@ const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState(null);
 
   const router = useRouter();
-  const user = useAuth();
 
   const { userId } = router.query;
 
@@ -83,9 +81,9 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (user && userId) handleGetTasksList();
+    if (userId) handleGetTasksList();
     else router.push("/auth");
-  }, [userId, selectedFilter, user]);
+  }, [userId, selectedFilter]);
 
   return (
     <div className="container mx-auto p-6">

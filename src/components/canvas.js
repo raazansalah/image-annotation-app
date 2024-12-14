@@ -8,6 +8,7 @@ const Canvas = ({ tasksLength, onFinish, currentAnnotation, onNavigation }) => {
 
   const [rectangles, setRectangles] = useState(currentAnnotation?.annotations);
   const [textValue, setTextValue] = useState("");
+  const [error, setError] = useState("");
   const [drawingParams, setDrawingParams] = useState({
     startX: 0,
     startY: 0,
@@ -71,6 +72,11 @@ const Canvas = ({ tasksLength, onFinish, currentAnnotation, onNavigation }) => {
     const width = endX - startX;
     const height = endY - startY;
 
+    if (!textValue) {
+      setError("please Enter annotation text");
+      return;
+    }
+
     setRectangles((prev) => [
       ...prev,
       {
@@ -129,10 +135,14 @@ const Canvas = ({ tasksLength, onFinish, currentAnnotation, onNavigation }) => {
       <input
         type="text"
         value={textValue}
-        onChange={(e) => setTextValue(e.target.value)}
+        onChange={(e) => {
+          setTextValue(e.target.value);
+          setError(null);
+        }}
         placeholder="Enter annotation text"
         className="mt-6 left-5 p-6 border rounded text-black"
       />
+      {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <div className="flex gap-4">
         <button
