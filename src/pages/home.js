@@ -3,15 +3,21 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 
+import useAuth from "@/hooks/auth";
 import { addNewTask, getTasks, updateTask } from "@/api/tasks";
 
 import Canvas from "@/components/canvas";
+import Filters from "@/components/Filters";
+import { auth } from "../../firebase";
 
 const Home = () => {
   const [annotations, setAnnotations] = useState([]);
   const [currentAnnotation, setCurrentAnnotation] = useState(null);
+  const [selectedFilter, setSelectedFilter] = useState(null);
 
   const router = useRouter();
+  const user = useAuth();
+
   const { userId } = router.query;
 
   const handleImageUpload = async (e) => {
@@ -63,7 +69,7 @@ const Home = () => {
   };
 
   const handleGetTasksList = async () => {
-    const items = await getTasks(userId);
+    const items = await getTasks(userId, selectedFilter);
     setAnnotations(items);
     // setCurrentAnnotation({ ...items[0], index: 0 });
   };
@@ -72,9 +78,14 @@ const Home = () => {
     setCurrentAnnotation({ ...annotations[index], index });
   };
 
+  const handleFilterClick = (filter) => {
+    setSelectedFilter(filter);
+  };
+
   useEffect(() => {
-    if (userId) handleGetTasksList();
-  }, [userId]);
+    if (user && userId) handleGetTasksList();
+    else router.push("/auth");
+  }, [userId, selectedFilter, user]);
 
   return (
     <div className="container mx-auto p-6">
@@ -82,6 +93,7 @@ const Home = () => {
         Image Annotation Tool
       </h1>
 
+      <Filters selectedFilter={selectedFilter} onSelect={handleFilterClick} />
       {/* Image Upload and Selection Section */}
       <div className="flex flex-wrap gap-4 justify-center mb-6">
         {annotations?.map((annotation, index) => (

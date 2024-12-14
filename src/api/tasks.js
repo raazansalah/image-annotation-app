@@ -29,18 +29,31 @@ export const updateTask = async (firestoreId, updatedData) => {
   }
 };
 
-export const getTasks = async (userId) => {
+export const getTasks = async (userId, status = null) => {
   try {
-    const tasksQuery = query(
+    // Start with the query filtering by assignedTo
+    let tasksQuery = query(
       collection(db, "tasks"),
       where("assignedTo", "==", userId)
     );
+
+    // Conditionally add the 'status' filter if it's provided
+    if (status) {
+      tasksQuery = query(
+        tasksQuery,
+        where("status", "==", status) // Add status filter if status is provided
+      );
+    }
+
+    // Execute the query
     const querySnapshot = await getDocs(tasksQuery);
 
+    // Map the results into an array
     const items = querySnapshot.docs.map((doc) => ({
       ...doc.data(),
-      id: doc.id,
+      id: doc.id, // Include the document ID
     }));
+
     return items;
   } catch (error) {
     console.error("Error fetching tasks: ", error);
