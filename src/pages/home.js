@@ -4,7 +4,14 @@ import { useRouter } from "next/router";
 
 import Canvas from "@/components/canvas";
 import { db } from "../../firebase";
-import { getDocs, collection, query, where } from "firebase/firestore";
+import {
+  getDocs,
+  collection,
+  doc,
+  updateDoc,
+  query,
+  where,
+} from "firebase/firestore";
 
 const Home = () => {
   const [annotations, setAnnotations] = useState();
@@ -29,7 +36,7 @@ const Home = () => {
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "innotation-preset"); // Replace with your preset name
+    formData.append("upload_preset", "innotation-preset");
 
     try {
       const response = await fetch(
@@ -41,50 +48,47 @@ const Home = () => {
       );
 
       const data = await response.json();
-      return data.secure_url; // This is the URL of the uploaded image
+      return data.secure_url;
     } catch (error) {
       console.error("Error uploading to Cloudinary:", error);
       return null;
     }
   };
 
-  const handleAnnotationFinish = (newAnnotation) => {
-    console.log(newAnnotation);
-    // setAnnotations((prev) =>
-    //   prev.map((task) =>
-    //     task.taskId === taskId ? { ...task, annotations: rectangles } : task
-    //   )
-    // );
-    // data.tasksCollection.map((task) => {
-    //   addDoc(collection(db, "tasks"), {
-    //     assignedTo: userId,
-    //     imageURL: task.imageURL,
-    //     status: task.status,
-    //     annotations: task.annotations,
-    //   });
-    // });
+  const handleAnnotationFinish = async (newAnnotation) => {
+    try {
+      await updateTask(newAnnotation?.id, newAnnotation);
+      console.log("Annotations updated successfully!");
+    } catch (error) {
+      console.error("Error updating annotations:", error);
+    }
   };
 
   const fetchData = async () => {
     try {
       const tasksQuery = query(
         collection(db, "tasks"),
-        where("assignedTo", "==", userId) // Adjust "assignedTo" to match your field name
+        where("assignedTo", "==", userId)
       );
-
-      // Execute the query
       const querySnapshot = await getDocs(tasksQuery);
 
-      // Map the results
       const items = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
         ...doc.data(),
+        id: doc.id,
       }));
-
       setAnnotations(items);
-      return items; // Optional: Return the tasks if needed
     } catch (error) {
       console.error("Error fetching tasks: ", error);
+    }
+  };
+
+  const updateTask = async (firestoreId, updatedData) => {
+    try {
+      const taskDocRef = doc(db, "tasks", firestoreId);
+      await updateDoc(taskDocRef, updatedData);
+      fetchData();
+    } catch (error) {
+      console.error("Error updating task:", error);
     }
   };
 

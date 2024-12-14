@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 
-const Canvas = ({ onFinish, currentAnnotation }) => {
+const Canvas = ({ imageSrc, onFinish, currentAnnotation }) => {
   const canvasRef = useRef(null);
   const canvasContext = useRef(null);
 
@@ -15,18 +15,18 @@ const Canvas = ({ onFinish, currentAnnotation }) => {
     endY: 0,
     isDrawing: false,
   });
-  console.log(currentAnnotation);
+
   useEffect(() => {
     if (currentAnnotation) setRectangles(currentAnnotation?.annotations);
   }, [currentAnnotation]);
 
   // Load the image and set up canvas context
   useEffect(() => {
-    if (currentAnnotation?.imageURL) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      canvasContext.current = ctx;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    canvasContext.current = ctx;
 
+    if (currentAnnotation?.imageURL) {
       const img = new Image();
       img.src = currentAnnotation?.imageURL;
       img.onload = () => {
@@ -48,6 +48,8 @@ const Canvas = ({ onFinish, currentAnnotation }) => {
           });
         }
       };
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   }, [currentAnnotation, rectangles]);
 
@@ -79,7 +81,6 @@ const Canvas = ({ onFinish, currentAnnotation }) => {
       },
     ]);
     setTextValue("");
-    onFinish(currentAnnotation.taskId, rectangles);
   };
 
   //updating drawing parameters while dragging
@@ -98,31 +99,39 @@ const Canvas = ({ onFinish, currentAnnotation }) => {
     }
   };
 
+  const handleFinishAnnotation = () => {
+    onFinish({ ...currentAnnotation, annotations: rectangles });
+  };
+
   return (
     <div className="flex flex-col items-center space-y-6 p-4">
-      {/* Canvas container */}
-      <div className="relative w-full max-w-4xl">
+      <div className="border-2 border-gray-300 rounded-lg shadow-md w-1/2 flex items-center flex-col">
         <canvas
           ref={canvasRef}
-          width={800}
-          height={600}
-          className="w-full h-auto border-2 border-gray-300 rounded-lg shadow-md"
+          className="max-w-full"
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
         />
       </div>
 
-      {/* Annotation input field */}
-      <div className="w-full max-w-md">
-        <input
-          type="text"
-          value={textValue}
-          onChange={(e) => setTextValue(e.target.value)}
-          placeholder="Enter annotation text"
-          className="w-full p-4 border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 text-black"
-        />
-      </div>
+      <input
+        type="text"
+        value={textValue}
+        onChange={(e) => setTextValue(e.target.value)}
+        placeholder="Enter annotation text"
+        className="mt-6 left-5 p-6 border rounded text-black"
+      />
+
+      <button
+        className={`py-4 px-8 mt-4 bg-blue-500 text-white rounded-lg transition-all hover:bg-blue-600 ${
+          !currentAnnotation ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        disabled={!currentAnnotation}
+        onClick={handleFinishAnnotation}
+      >
+        Next
+      </button>
     </div>
   );
 };
