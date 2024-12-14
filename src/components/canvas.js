@@ -2,11 +2,11 @@
 
 import React, { useRef, useState, useEffect } from "react";
 
-const Canvas = ({ imageSrc, onFinish }) => {
+const Canvas = ({ onFinish, currentAnnotation }) => {
   const canvasRef = useRef(null);
   const canvasContext = useRef(null);
 
-  const [rectangles, setRectangles] = useState([]);
+  const [rectangles, setRectangles] = useState(currentAnnotation?.annotations);
   const [textValue, setTextValue] = useState("");
   const [drawingParams, setDrawingParams] = useState({
     startX: 0,
@@ -15,24 +15,28 @@ const Canvas = ({ imageSrc, onFinish }) => {
     endY: 0,
     isDrawing: false,
   });
+  console.log(currentAnnotation);
+  useEffect(() => {
+    if (currentAnnotation) setRectangles(currentAnnotation?.annotations);
+  }, [currentAnnotation]);
 
   // Load the image and set up canvas context
   useEffect(() => {
-    if (imageSrc) {
+    if (currentAnnotation?.imageURL) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       canvasContext.current = ctx;
 
       const img = new Image();
-      img.src = imageSrc;
+      img.src = currentAnnotation?.imageURL;
       img.onload = () => {
         // Clear and Draw the image onto the canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         // Draw existing rectangles with annotations
-        if (rectangles.length) {
-          rectangles.forEach(({ x, y, width, height, text = "" }) => {
+        if (rectangles && rectangles.length) {
+          rectangles.forEach(({ x, y, width, height, annotation = "" }) => {
             ctx.beginPath();
             ctx.rect(x, y, width, height);
             ctx.lineWidth = 2;
@@ -40,12 +44,12 @@ const Canvas = ({ imageSrc, onFinish }) => {
             ctx.stroke();
             ctx.font = "14px Arial";
             ctx.fillStyle = "red";
-            ctx.fillText(text, x + 5, y + 15);
+            ctx.fillText(annotation, x + 5, y + 15);
           });
         }
       };
     }
-  }, [imageSrc, rectangles]);
+  }, [currentAnnotation, rectangles]);
 
   const handleMouseDown = ({ clientX, clientY }) => {
     const canvas = canvasRef.current;
@@ -71,11 +75,11 @@ const Canvas = ({ imageSrc, onFinish }) => {
         y: startY,
         width,
         height,
-        text: textValue,
+        annotation: textValue,
       },
     ]);
     setTextValue("");
-    onFinish(imageSrc, rectangles);
+    onFinish(currentAnnotation.taskId, rectangles);
   };
 
   //updating drawing parameters while dragging
@@ -95,24 +99,30 @@ const Canvas = ({ imageSrc, onFinish }) => {
   };
 
   return (
-    <div>
-      <canvas
-        ref={canvasRef}
-        width={800}
-        height={600}
-        className="border"
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-      />
+    <div className="flex flex-col items-center space-y-6 p-4">
+      {/* Canvas container */}
+      <div className="relative w-full max-w-4xl">
+        <canvas
+          ref={canvasRef}
+          width={800}
+          height={600}
+          className="w-full h-auto border-2 border-gray-300 rounded-lg shadow-md"
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+        />
+      </div>
 
-      <input
-        type="text"
-        value={textValue}
-        onChange={(e) => setTextValue(e.target.value)}
-        placeholder="Enter annotation text"
-        className="mt-6 left-5 p-2 border rounded text-black"
-      />
+      {/* Annotation input field */}
+      <div className="w-full max-w-md">
+        <input
+          type="text"
+          value={textValue}
+          onChange={(e) => setTextValue(e.target.value)}
+          placeholder="Enter annotation text"
+          className="w-full p-4 border-2 border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 text-black"
+        />
+      </div>
     </div>
   );
 };
