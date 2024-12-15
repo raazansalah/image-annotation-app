@@ -4,6 +4,11 @@
 
 The Image Annotation Tool allows users to upload an image, annotate it with text, and manage tasks assigned to them. The application uses Firebase for user authentication and Firestore for storing tasks and annotations. 
 
+# Live Deployment
+
+Access the live version of the Image Annotation App here:  
+[**Live App**](https://image-annotation-app-chi.vercel.app/auth)
+
 ## Features
 
 - **User Authentication**: Sign up and login with Firebase Authentication.
